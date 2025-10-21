@@ -1,6 +1,6 @@
 {
   "name": "@fjell/lib-fs",
-  "version": "4.4.0-dev.0",
+  "version": "4.4.0",
   "type": "module",
   "keywords": [
     "library",
@@ -74,4 +74,3 @@
     "CHANGELOG.md"
   ]
 }
-
