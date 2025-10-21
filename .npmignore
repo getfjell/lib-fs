@@ -1,0 +1,45 @@
+# Source files
+src/
+tests/
+examples/
+
+# Config files
+*.config.ts
+*.config.js
+*.config.mjs
+tsconfig.json
+tsconfig.build.json
+eslint.config.mjs
+vitest.config.ts
+
+# Build scripts
+build.js
+scripts/
+
+# Documentation (keep only README for npm)
+docs/
+prompts/
+
+# Test and coverage
+coverage/
+*.test.ts
+*.spec.ts
+
+# Development files
+.gitignore
+.git/
+.github/
+.vscode/
+.idea/
+
+# Output directories
+output/
+
+# Misc
+*.md~
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+node_modules/
