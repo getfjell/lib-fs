@@ -124,6 +124,53 @@ describe('FileProcessor', () => {
 
       expect(processor.validateItemStructure(item)).toBe(false);
     });
+
+    it('should reject null or undefined', () => {
+      const processor = new FileProcessor();
+
+      expect(processor.validateItemStructure(null as any)).toBe(false);
+      expect(processor.validateItemStructure(undefined as any)).toBe(false);
+    });
+
+    it('should reject non-object types', () => {
+      const processor = new FileProcessor();
+
+      expect(processor.validateItemStructure('string' as any)).toBe(false);
+      expect(processor.validateItemStructure(123 as any)).toBe(false);
+      expect(processor.validateItemStructure(true as any)).toBe(false);
+    });
+
+    it('should reject item with non-string kt', () => {
+      const processor = new FileProcessor();
+      const item = {
+        kt: 123,
+        pk: 'test-123',
+      } as any;
+
+      expect(processor.validateItemStructure(item)).toBe(false);
+    });
+
+    it('should reject item with non-string pk', () => {
+      const processor = new FileProcessor();
+      const item = {
+        kt: 'test',
+        pk: 123,
+      } as any;
+
+      expect(processor.validateItemStructure(item)).toBe(false);
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw error when serialization fails', () => {
+      const processor = new FileProcessor();
+      
+      // Create circular reference that can't be serialized
+      const circular: any = { kt: 'test', pk: 'test' };
+      circular.self = circular;
+
+      expect(() => processor.serialize(circular)).toThrow();
+    });
   });
 });
 

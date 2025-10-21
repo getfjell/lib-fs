@@ -22,7 +22,7 @@ describe('Definition', () => {
       expect(definition).toBeDefined();
       expect(definition.globalDirectory).toContain('data');
       expect(definition.directoryPaths).toEqual(['tests']);
-      expect(definition.coordinate.kt).toBe('test');
+      expect(definition.coordinate.kta[0]).toBe('test');
     });
 
     it('should throw error for missing globalDirectory', () => {
@@ -78,6 +78,35 @@ describe('Definition', () => {
 
       // Should be an absolute path
       expect(definition.globalDirectory).toMatch(/^[\/\\]/);
+    });
+
+    it('should store kta as string array', () => {
+      const definition = createDefinition<TestItem, 'test', never, never, never, never, never>(
+        ['test'],
+        [],
+        ['tests'],
+        './data',
+        {}
+      );
+
+      expect(definition.kta).toBeDefined();
+      expect(Array.isArray(definition.kta)).toBe(true);
+      expect(definition.kta).toHaveLength(1);
+    });
+
+    it('should set default file options', () => {
+      const definition = createDefinition<TestItem, 'test', never, never, never, never, never>(
+        ['test'],
+        [],
+        ['tests'],
+        './data',
+        {}
+      );
+
+      expect(definition.options.files).toBeDefined();
+      expect(definition.options.files?.directory).toBe('_files');
+      expect(definition.options.files?.includeMetadataInItem).toBe(true);
+      expect(definition.options.files?.computeChecksums).toBe(true);
     });
   });
 });

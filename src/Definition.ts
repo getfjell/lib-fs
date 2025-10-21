@@ -1,4 +1,4 @@
-import { Coordinate, createCoordinate, ItemTypeArray } from '@fjell/core';
+import { Coordinate, createCoordinate, Item, ItemTypeArray } from '@fjell/core';
 import * as Library from '@fjell/lib';
 import * as path from 'path';
 import { Options } from './Options';
@@ -6,14 +6,31 @@ import FSLogger from './logger';
 
 const logger = FSLogger.get('Definition');
 
-export interface Definition<V, S, L1, L2, L3, L4, L5> {
+export interface Definition<
+  V extends Item<S, L1, L2, L3, L4, L5>,
+  S extends string,
+  L1 extends string = never,
+  L2 extends string = never,
+  L3 extends string = never,
+  L4 extends string = never,
+  L5 extends string = never
+> {
   coordinate: Coordinate<S, L1, L2, L3, L4, L5>;
   options: Options<V, S, L1, L2, L3, L4, L5>;
   globalDirectory: string;
   directoryPaths: string[];
+  kta?: string[]; // Key type array as strings for PathBuilder
 }
 
-export function createDefinition<V, S, L1, L2, L3, L4, L5>(
+export function createDefinition<
+  V extends Item<S, L1, L2, L3, L4, L5>,
+  S extends string,
+  L1 extends string = never,
+  L2 extends string = never,
+  L3 extends string = never,
+  L4 extends string = never,
+  L5 extends string = never
+>(
   kta: ItemTypeArray<S, L1, L2, L3, L4, L5>,
   scopes: string[],
   directoryPaths: string[],
@@ -44,27 +61,31 @@ export function createDefinition<V, S, L1, L2, L3, L4, L5>(
   const options: Options<V, S, L1, L2, L3, L4, L5> = {
     ...libOptions,
     globalDirectory: absoluteGlobalDirectory,
-    useJsonExtension: libOptions.useJsonExtension ?? true,
-    autoCreateDirectories: libOptions.autoCreateDirectories ?? true,
-    encoding: (libOptions.encoding as BufferEncoding) ?? 'utf-8',
-    prettyPrint: libOptions.prettyPrint ?? false,
-    fileMode: libOptions.fileMode ?? 0o644,
-    directoryMode: libOptions.directoryMode ?? 0o755,
+    useJsonExtension: (libOptions as any).useJsonExtension ?? true,
+    autoCreateDirectories: (libOptions as any).autoCreateDirectories ?? true,
+    encoding: ((libOptions as any).encoding as BufferEncoding) ?? 'utf-8',
+    prettyPrint: (libOptions as any).prettyPrint ?? false,
+    fileMode: (libOptions as any).fileMode ?? 0o644,
+    directoryMode: (libOptions as any).directoryMode ?? 0o755,
     files: {
-      directory: libOptions.files?.directory ?? '_files',
-      maxFileSize: libOptions.files?.maxFileSize,
-      allowedContentTypes: libOptions.files?.allowedContentTypes,
-      includeMetadataInItem: libOptions.files?.includeMetadataInItem ?? true,
-      computeChecksums: libOptions.files?.computeChecksums ?? true,
+      directory: (libOptions as any).files?.directory ?? '_files',
+      maxFileSize: (libOptions as any).files?.maxFileSize,
+      allowedContentTypes: (libOptions as any).files?.allowedContentTypes,
+      includeMetadataInItem: (libOptions as any).files?.includeMetadataInItem ?? true,
+      computeChecksums: (libOptions as any).files?.computeChecksums ?? true,
     },
   };
 
   logger.debug('Definition created', { coordinate, absoluteGlobalDirectory });
+
+  // Store kta as string array for PathBuilder
+  const ktaStrings = Array.isArray(kta) ? kta.map(String) : [String(kta)];
 
   return {
     coordinate,
     options,
     globalDirectory: absoluteGlobalDirectory,
     directoryPaths,
+    kta: ktaStrings as any, // Store for PathBuilder usage
   };
 }

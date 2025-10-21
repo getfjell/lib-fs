@@ -8,17 +8,20 @@ const logger = FSLogger.get('PathBuilder');
 export interface PathBuilderConfig {
   globalDirectory: string;
   directoryPaths: string[];
+  kta?: string[]; // Key type array to map kt to directory paths
   useJsonExtension?: boolean;
 }
 
 export class PathBuilder {
   private globalDirectory: string;
   private directoryPaths: string[];
+  private kta: string[];
   private useJsonExtension: boolean;
 
   constructor(config: PathBuilderConfig) {
     this.globalDirectory = config.globalDirectory;
     this.directoryPaths = config.directoryPaths;
+    this.kta = config.kta || [];
     this.useJsonExtension = config.useJsonExtension ?? true;
   }
 
@@ -28,9 +31,9 @@ export class PathBuilder {
    */
   buildPath(key: PriKey<any> | ComKey<any, any, any, any, any, any>): string {
     if (isComKey(key)) {
-      return this.buildComKeyPath(key);
+      return this.buildComKeyPath(key as ComKey<any, any, any, any, any, any>);
     }
-    return this.buildPriKeyPath(key);
+    return this.buildPriKeyPath(key as PriKey<any>);
   }
 
   /**
@@ -38,7 +41,7 @@ export class PathBuilder {
    */
   private buildPriKeyPath(key: PriKey<any>): string {
     const directory = this.buildDirectory(key.kt, 0);
-    const filename = this.useJsonExtension ? `${key.pk}.json` : key.pk;
+    const filename = this.useJsonExtension ? `${key.pk}.json` : String(key.pk);
     return path.join(directory, filename);
   }
 
@@ -52,24 +55,22 @@ export class PathBuilder {
     // Build path through location hierarchy
     if (key.loc) {
       for (const location of key.loc) {
-        const locIndex = this.directoryPaths.findIndex(
-          (_, idx) => this.getKeyTypeAtIndex(idx) === location.kt
-        );
-        if (locIndex !== -1) {
-          currentPath = path.join(currentPath, this.directoryPaths[locIndex], location.lk);
+        const locIndex = this.kta.indexOf(String(location.kt));
+        if (locIndex !== -1 && this.directoryPaths[locIndex]) {
+          currentPath = path.join(currentPath, this.directoryPaths[locIndex], String(location.lk));
         } else {
-          currentPath = path.join(currentPath, location.kt, location.lk);
+          currentPath = path.join(currentPath, String(location.kt), String(location.lk));
         }
       }
     }
 
     // Add final key type directory and filename
-    const ktIndex = this.directoryPaths.findIndex(
-      (_, idx) => this.getKeyTypeAtIndex(idx) === key.kt
-    );
-    const ktDirectory = ktIndex !== -1 ? this.directoryPaths[ktIndex] : key.kt;
+    const ktIndex = this.kta.indexOf(String(key.kt));
+    const ktDirectory = ktIndex !== -1 && this.directoryPaths[ktIndex]
+      ? this.directoryPaths[ktIndex]
+      : String(key.kt);
     
-    const filename = this.useJsonExtension ? `${key.pk}.json` : key.pk;
+    const filename = this.useJsonExtension ? `${key.pk}.json` : String(key.pk);
     return path.join(currentPath, ktDirectory, filename);
   }
 
@@ -144,7 +145,7 @@ export class PathBuilder {
 
       // Complex case: composite key with locations
       // This is a simplified implementation
-      logger.warn('parsePathToKey for composite keys not fully implemented', { filePath });
+      logger.warning('parsePathToKey for composite keys not fully implemented', { filePath });
       return null;
     } catch (error) {
       logger.error('Failed to parse path to key', { filePath, error });

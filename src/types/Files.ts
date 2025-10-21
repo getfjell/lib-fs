@@ -1,5 +1,3 @@
-import { ComKey, PriKey } from '@fjell/core';
-
 /**
  * Metadata for a file attachment
  */
