@@ -1,4 +1,5 @@
-import { createLibraryLogger } from '@fjell/logging';
+import Logging from '@fjell/logging';
 
-const FSLogger = createLibraryLogger('lib-fs');
+const FSLogger = Logging.getLogger('@fjell/lib-fs');
+
 export default FSLogger;

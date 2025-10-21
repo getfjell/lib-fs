@@ -30,6 +30,7 @@ export class FileProcessor {
    */
   deserialize<V extends Item<any, any, any, any, any, any>>(
     content: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     coordinate: Coordinate<any, any, any, any, any, any>
   ): V | null {
     try {
@@ -37,7 +38,7 @@ export class FileProcessor {
       
       // Basic validation
       if (!this.validateItemStructure(item)) {
-        logger.warn('Invalid item structure', { item });
+        logger.warning('Invalid item structure', { item });
         return null;
       }
 
@@ -58,12 +59,12 @@ export class FileProcessor {
     }
 
     if (!item.kt || typeof item.kt !== 'string') {
-      logger.warn('Item missing or invalid kt', { item });
+      logger.warning('Item missing or invalid kt', { item });
       return false;
     }
 
     if (!item.pk || typeof item.pk !== 'string') {
-      logger.warn('Item missing or invalid pk', { item });
+      logger.warning('Item missing or invalid pk', { item });
       return false;
     }
 

@@ -1,6 +1,5 @@
 import * as Library from '@fjell/lib';
 import { Item } from '@fjell/core';
-import type { FileReference } from './types/Files';
 
 export interface Options<
   V extends Item<S, L1, L2, L3, L4, L5>,

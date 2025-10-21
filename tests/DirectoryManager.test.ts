@@ -111,5 +111,50 @@ describe('DirectoryManager', () => {
       expect(dirExists).toBe(true);
     });
   });
+
+  describe('listNestedFiles', () => {
+    it('should list files in nested structure', async () => {
+      // Create nested structure
+      const subDir1 = path.join(testDir, 'level1');
+      const subDir2 = path.join(testDir, 'level1', 'level2');
+      await fs.mkdir(subDir1);
+      await fs.mkdir(subDir2);
+      
+      await fs.writeFile(path.join(testDir, 'file1.txt'), 'content1');
+      await fs.writeFile(path.join(subDir1, 'file2.txt'), 'content2');
+      await fs.writeFile(path.join(subDir2, 'file3.txt'), 'content3');
+
+      const files = await manager.listNestedFiles(testDir, '.txt');
+      expect(files).toHaveLength(3);
+    });
+
+    it('should return empty array for non-existent directory', async () => {
+      const files = await manager.listNestedFiles(path.join(testDir, 'nonexistent'), '.txt');
+      expect(files).toEqual([]);
+    });
+  });
+
+  describe('error handling', () => {
+    it('should handle permission errors gracefully', async () => {
+      // This test ensures error handling works
+      const files = await manager.listFiles('/root/protected-dir-that-does-not-exist');
+      expect(files).toEqual([]);
+    });
+
+    it('should handle errors in recursive listing', async () => {
+      const files = await manager.listFilesRecursive('/root/protected-dir-that-does-not-exist');
+      expect(files).toEqual([]);
+    });
+  });
+
+  describe('directoryExists edge cases', () => {
+    it('should return false for file path (not directory)', async () => {
+      const filePath = path.join(testDir, 'test.txt');
+      await fs.writeFile(filePath, 'content');
+
+      const isDir = await manager.directoryExists(filePath);
+      expect(isDir).toBe(false);
+    });
+  });
 });
 
