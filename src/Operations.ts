@@ -1,6 +1,173 @@
-// Placeholder for Operations implementation
-// Will be implemented in later prompts
-export function createOperations() {
-  throw new Error('Not implemented yet');
-}
+import { ComKey, Item, ItemQuery, LocKeyArray, PriKey } from '@fjell/core';
+import * as Library from '@fjell/lib';
+import { Definition } from './Definition';
+import { PathBuilder } from './PathBuilder';
+import { FileProcessor } from './FileProcessor';
+import { DirectoryManager } from './DirectoryManager';
+import * as ops from './ops';
+import FSLogger from './logger';
+import { Registry } from '@fjell/lib';
 
+const logger = FSLogger.get('Operations');
+
+/**
+ * Create Operations implementation for Filesystem Library
+ */
+export const createOperations = <
+  V extends Item<S, L1, L2, L3, L4, L5>,
+  S extends string,
+  L1 extends string = never,
+  L2 extends string = never,
+  L3 extends string = never,
+  L4 extends string = never,
+  L5 extends string = never
+>(
+    definition: Definition<V, S, L1, L2, L3, L4, L5>,
+    _registry?: Registry
+  ): Library.Operations<V, S, L1, L2, L3, L4, L5> => {
+  logger.default('createOperations', {
+    globalDirectory: definition.globalDirectory,
+    coordinate: definition.coordinate
+  });
+
+  // Create PathBuilder, FileProcessor, and DirectoryManager instances
+  const pathBuilder = new PathBuilder({
+    globalDirectory: definition.globalDirectory,
+    directoryPaths: definition.directoryPaths,
+    kta: definition.coordinate.kta.map(String), // Pass kta for proper key type mapping
+    useJsonExtension: definition.options.useJsonExtension
+  });
+
+  const fileProcessor = new FileProcessor(definition.options.prettyPrint || false);
+
+  const directoryManager = new DirectoryManager(
+    definition.globalDirectory,
+    definition.options.directoryMode || 0o755
+  );
+
+  const { options, coordinate } = definition;
+
+  // Create implementation operations (core CRUD and query operations)
+  const implOps: Library.ImplementationOperations<V, S, L1, L2, L3, L4, L5> = {
+    get: async (key: PriKey<S> | ComKey<S, L1, L2, L3, L4, L5>) => {
+      return ops.get<V, S, L1, L2, L3, L4, L5>(
+        key,
+        pathBuilder,
+        fileProcessor,
+        coordinate,
+        options
+      );
+    },
+
+    create: async (
+      item: Partial<Item<S, L1, L2, L3, L4, L5>>,
+      createOptions?: ops.CreateOptions<S, L1, L2, L3, L4, L5>
+    ) => {
+      return ops.create<V, S, L1, L2, L3, L4, L5>(
+        item,
+        createOptions,
+        pathBuilder,
+        fileProcessor,
+        directoryManager,
+        coordinate,
+        options
+      );
+    },
+
+    update: async (
+      key: PriKey<S> | ComKey<S, L1, L2, L3, L4, L5>,
+      item: Partial<Item<S, L1, L2, L3, L4, L5>>,
+      updateOptions?: ops.UpdateOptions
+    ) => {
+      return ops.update<V, S, L1, L2, L3, L4, L5>(
+        key,
+        item,
+        updateOptions,
+        pathBuilder,
+        fileProcessor,
+        directoryManager,
+        coordinate,
+        options
+      );
+    },
+
+    upsert: async (
+      key: PriKey<S> | ComKey<S, L1, L2, L3, L4, L5>,
+      item: Partial<Item<S, L1, L2, L3, L4, L5>>,
+      locations?: LocKeyArray<L1, L2, L3, L4, L5>,
+      updateOptions?: ops.UpdateOptions
+    ) => {
+      return ops.upsert<V, S, L1, L2, L3, L4, L5>(
+        key,
+        item,
+        locations,
+        updateOptions,
+        pathBuilder,
+        fileProcessor,
+        directoryManager,
+        coordinate,
+        options
+      );
+    },
+
+    remove: async (key: PriKey<S> | ComKey<S, L1, L2, L3, L4, L5>) => {
+      return ops.remove<V, S, L1, L2, L3, L4, L5>(
+        key,
+        pathBuilder,
+        fileProcessor,
+        coordinate,
+        options
+      );
+    },
+
+    all: async (
+      query?: ItemQuery,
+      locations?: LocKeyArray<L1, L2, L3, L4, L5> | []
+    ) => {
+      return ops.all<V, S, L1, L2, L3, L4, L5>(
+        query,
+        locations,
+        pathBuilder,
+        fileProcessor,
+        directoryManager,
+        coordinate
+      );
+    },
+
+    one: async (
+      query?: ItemQuery,
+      locations?: LocKeyArray<L1, L2, L3, L4, L5> | []
+    ) => {
+      return ops.one<V, S, L1, L2, L3, L4, L5>(
+        query,
+        locations,
+        pathBuilder,
+        fileProcessor,
+        directoryManager,
+        coordinate
+      );
+    },
+
+    // Find operations - execute user-defined finders
+    find: async (finder: string, params: any = {}, locations?: any) => {
+      if (!options.finders || !options.finders[finder]) {
+        throw new Error(`Finder '${finder}' not found`);
+      }
+      
+      // Execute user's finder function which should do the query
+      return options.finders[finder](params, locations);
+    },
+
+    findOne: async (finder: string, params: any = {}, locations?: any) => {
+      if (!options.finders || !options.finders[finder]) {
+        throw new Error(`Finder '${finder}' not found`);
+      }
+      
+      const results = await options.finders[finder](params, locations);
+      return results.length > 0 ? results[0] : null;
+    }
+  };
+
+  // Wrap with hooks, validation, and extended operations using @fjell/lib wrapper
+  return Library.wrapOperations(implOps as any, options, coordinate, _registry || ({} as Registry));
+};

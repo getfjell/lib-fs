@@ -187,5 +187,50 @@ export class PathBuilder {
     }
     return directory;
   }
+
+  /**
+   * Build directory path from locations for listing operations
+   * Example: /data/myapp/post/post-456/comment
+   */
+  buildDirectoryFromLocations(locations: any[]): string {
+    let currentPath = this.globalDirectory;
+
+    // Build path through location hierarchy
+    for (const location of locations) {
+      const locIndex = this.kta.indexOf(String(location.kt));
+      if (locIndex !== -1 && this.directoryPaths[locIndex]) {
+        currentPath = path.join(currentPath, this.directoryPaths[locIndex], String(location.lk));
+      } else {
+        currentPath = path.join(currentPath, String(location.kt), String(location.lk));
+      }
+    }
+
+    return currentPath;
+  }
+
+  /**
+   * Extract locations from a file path
+   * This is a simplified implementation
+   */
+  parseLocationsFromPath(filePath: string): any[] {
+    try {
+      const relativePath = path.relative(this.globalDirectory, filePath);
+      const parts = relativePath.split(path.sep);
+      const locations: any[] = [];
+
+      // Parse location hierarchy (every 2 parts is a location)
+      for (let i = 0; i < parts.length - 2; i += 2) {
+        locations.push({
+          kt: this.getKeyTypeByDirectory(parts[i]),
+          lk: parts[i + 1]
+        });
+      }
+
+      return locations;
+    } catch (error) {
+      logger.error('Failed to parse locations from path', { filePath, error });
+      return [];
+    }
+  }
 }
 
