@@ -4,6 +4,7 @@ import { FileProcessor } from '../FileProcessor';
 import { DirectoryManager } from '../DirectoryManager';
 import FSLogger from '../logger';
 import * as fs from 'fs/promises';
+import * as path from 'path';
 
 const logger = FSLogger.get('ops', 'all');
 
@@ -29,10 +30,22 @@ export async function all<
   logger.default('all', { query, locations });
 
   try {
-    // Determine directory path from coordinate
-    // For primary items, use the first directory
-    const directoryPath = pathBuilder.buildDirectory(coordinate.kta[0], 0);
-    logger.default('Directory path', { directoryPath });
+    // Determine directory path from coordinate and locations
+    let directoryPath: string;
+    
+    if (locations && locations.length > 0) {
+      // Build path from locations
+      const basePath = pathBuilder.buildDirectoryFromLocations(locations as any[]);
+      const kt = coordinate.kta[0];
+      const ktIndex = 0; // First element is always the primary kt
+      const ktDirectory = pathBuilder.buildDirectory(kt, ktIndex).split(path.sep).pop() || kt;
+      directoryPath = path.join(basePath, ktDirectory);
+    } else {
+      // For primary items or no locations specified, use the first directory
+      directoryPath = pathBuilder.buildDirectory(coordinate.kta[0], 0);
+    }
+    
+    logger.default('Directory path', { directoryPath, locations });
 
     // List all JSON files in directory
     const files = await directoryManager.listFiles(directoryPath, '.json');
