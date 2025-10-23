@@ -34,6 +34,7 @@ export const createOperations = <
   const pathBuilder = new PathBuilder({
     globalDirectory: definition.globalDirectory,
     directoryPaths: definition.directoryPaths,
+    kta: definition.coordinate.kta.map(String), // Pass kta for proper key type mapping
     useJsonExtension: definition.options.useJsonExtension
   });
 
