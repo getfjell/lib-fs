@@ -1,4 +1,4 @@
-import { ComKey, Coordinate, Item, LocKeyArray, NotFoundError, PriKey } from '@fjell/core';
+import { ComKey, Coordinate, Item, LocKeyArray, NotFoundError, PriKey, UpdateOptions } from '@fjell/core';
 import { PathBuilder } from '../PathBuilder';
 import { FileProcessor } from '../FileProcessor';
 import { DirectoryManager } from '../DirectoryManager';
@@ -6,7 +6,7 @@ import { Options } from '../Options';
 import FSLogger from '../logger';
 import { get } from './get';
 import { create, CreateOptions } from './create';
-import { update, UpdateOptions } from './update';
+import { update } from './update';
 
 const logger = FSLogger.get('ops', 'upsert');
 
