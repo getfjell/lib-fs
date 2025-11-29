@@ -51,7 +51,7 @@ describe('all operation - Coverage Completion', () => {
     // Create a directory with .json extension (will cause read to fail)
     await fs.mkdir(path.join(dirPath, 'bad.json'), { recursive: true });
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       undefined,
       undefined,
       pathBuilder,
@@ -61,7 +61,8 @@ describe('all operation - Coverage Completion', () => {
     );
 
     // Should skip the bad file and return only good ones
-    expect(items.length).toBeGreaterThanOrEqual(1);
+    expect(result.items.length).toBeGreaterThanOrEqual(1);
+    expect(result.metadata.total).toBeGreaterThanOrEqual(1);
   });
 
   it('should handle non-ENOENT errors and rethrow (lines 85-92)', async () => {
@@ -89,8 +90,8 @@ describe('all operation - Coverage Completion', () => {
   });
 
   it('should handle ENOENT gracefully (line 88)', async () => {
-    // This should hit line 88 where it returns empty array for ENOENT
-    const items = await all<TestItem, 'test'>(
+    // This should hit line 88 where it returns empty result for ENOENT
+    const result = await all<TestItem, 'test'>(
       undefined,
       undefined,
       pathBuilder,
@@ -99,7 +100,8 @@ describe('all operation - Coverage Completion', () => {
       coordinate
     );
 
-    expect(items).toEqual([]);
+    expect(result.items).toEqual([]);
+    expect(result.metadata.total).toBe(0);
   });
 });
 

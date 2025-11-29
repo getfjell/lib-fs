@@ -147,9 +147,10 @@ describe('Operations', () => {
     await operations.create({ pk: 'item-1', name: 'Item 1' });
     await operations.create({ pk: 'item-2', name: 'Item 2' });
 
-    const items = await operations.all();
+    const result = await operations.all();
 
-    expect(items).toHaveLength(2);
+    expect(result.items).toHaveLength(2);
+    expect(result.metadata.total).toBe(2);
   });
 
   it('should execute one operation', async () => {

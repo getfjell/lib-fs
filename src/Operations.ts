@@ -1,4 +1,4 @@
-import { ComKey, Item, ItemQuery, LocKeyArray, PriKey } from '@fjell/core';
+import { AllOptions, ComKey, Item, ItemQuery, LocKeyArray, PriKey } from '@fjell/core';
 import * as Library from '@fjell/lib';
 import { Definition } from './Definition';
 import { PathBuilder } from './PathBuilder';
@@ -122,7 +122,8 @@ export const createOperations = <
 
     all: async (
       query?: ItemQuery,
-      locations?: LocKeyArray<L1, L2, L3, L4, L5> | []
+      locations?: LocKeyArray<L1, L2, L3, L4, L5> | [],
+      allOptions?: AllOptions
     ) => {
       return ops.all<V, S, L1, L2, L3, L4, L5>(
         query,
@@ -130,7 +131,8 @@ export const createOperations = <
         pathBuilder,
         fileProcessor,
         directoryManager,
-        coordinate
+        coordinate,
+        allOptions
       );
     },
 

@@ -29,22 +29,18 @@ export async function one<
   logger.default('one', { query, locations });
 
   try {
-    // Use all() with limit: 1
-    const queryWithLimit: ItemQuery = {
-      ...query,
-      limit: 1
-    };
-
-    const items = await all<V, S, L1, L2, L3, L4, L5>(
-      queryWithLimit,
+    // Use all() with limit: 1 via allOptions
+    const result = await all<V, S, L1, L2, L3, L4, L5>(
+      query,
       locations,
       pathBuilder,
       fileProcessor,
       directoryManager,
-      coordinate
+      coordinate,
+      { limit: 1 }
     );
 
-    return items.length > 0 ? items[0] : null;
+    return result.items.length > 0 ? result.items[0] : null;
   } catch (error) {
     logger.error('Error getting one item', { error });
     throw error;
