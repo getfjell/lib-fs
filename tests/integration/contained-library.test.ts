@@ -88,12 +88,13 @@ describe('Contained Item Library Integration', () => {
         { locations: [{ kt: 'post', lk: 'post-1' }] }
       );
 
-      const comments = await commentLib.operations.all(
+      const result = await commentLib.operations.all(
         {},
         [{ kt: 'post', lk: 'post-1' }]
       );
 
-      expect(comments).toHaveLength(2);
+      expect(result.items).toHaveLength(2);
+      expect(result.metadata.total).toBe(2);
     });
 
     it('should update contained item', async () => {
@@ -190,12 +191,13 @@ describe('Contained Item Library Integration', () => {
         { locations: [{ kt: 'post', lk: 'post-1' }, { kt: 'comment', lk: 'comment-1' }] }
       );
 
-      const replies = await replyLib.operations.all(
+      const result = await replyLib.operations.all(
         {},
         [{ kt: 'post', lk: 'post-1' }, { kt: 'comment', lk: 'comment-1' }]
       );
 
-      expect(replies).toHaveLength(2);
+      expect(result.items).toHaveLength(2);
+      expect(result.metadata.total).toBe(2);
     });
 
     it('should verify correct 3-level directory hierarchy', async () => {

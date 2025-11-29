@@ -202,5 +202,32 @@ describe('update operation', () => {
     expect(updated.pk).toBe('test-5'); // Original preserved
     expect(updated.name).toBe('Updated');
   });
+
+  it('should handle replace flag in CoreUpdateOptions (line 78 branch)', async () => {
+    const item = await create<TestItem, 'test'>(
+      { pk: 'test-6', name: 'Original', nested: { value: 'v1', other: 'o1' } },
+      undefined,
+      pathBuilder,
+      fileProcessor,
+      directoryManager,
+      coordinate,
+      options
+    );
+
+    // Test the branch: 'replace' in updateOptions && updateOptions.replace
+    const updated = await update<TestItem, 'test'>(
+      { kt: 'test', pk: item.pk },
+      { name: 'Replaced' },
+      { replace: true } as any, // CoreUpdateOptions with replace flag
+      pathBuilder,
+      fileProcessor,
+      directoryManager,
+      coordinate,
+      options
+    );
+
+    expect(updated.name).toBe('Replaced');
+    expect(updated.nested).toBeUndefined(); // Replace removes unspecified fields
+  });
 });
 

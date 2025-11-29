@@ -83,7 +83,7 @@ describe('Contained Items - all operation', () => {
     );
 
     // List comments in post-1
-    const comments = await all<Comment, 'comment', 'post'>(
+    const result = await all<Comment, 'comment', 'post'>(
       undefined,
       [{ kt: 'post', lk: 'post-1' }],
       pathBuilder,
@@ -92,8 +92,9 @@ describe('Contained Items - all operation', () => {
       coordinate
     );
 
-    expect(comments).toHaveLength(3);
-    comments.forEach(comment => {
+    expect(result.items).toHaveLength(3);
+    expect(result.metadata.total).toBe(3);
+    result.items.forEach(comment => {
       expect(comment.loc[0].lk).toBe('post-1');
     });
   });
@@ -131,7 +132,7 @@ describe('Contained Items - all operation', () => {
     );
 
     // List only post-1 comments
-    const post1Comments = await all<Comment, 'comment', 'post'>(
+    const post1Result = await all<Comment, 'comment', 'post'>(
       undefined,
       [{ kt: 'post', lk: 'post-1' }],
       pathBuilder,
@@ -140,10 +141,11 @@ describe('Contained Items - all operation', () => {
       coordinate
     );
 
-    expect(post1Comments).toHaveLength(2);
+    expect(post1Result.items).toHaveLength(2);
+    expect(post1Result.metadata.total).toBe(2);
 
     // List only post-2 comments
-    const post2Comments = await all<Comment, 'comment', 'post'>(
+    const post2Result = await all<Comment, 'comment', 'post'>(
       undefined,
       [{ kt: 'post', lk: 'post-2' }],
       pathBuilder,
@@ -152,11 +154,12 @@ describe('Contained Items - all operation', () => {
       coordinate
     );
 
-    expect(post2Comments).toHaveLength(1);
+    expect(post2Result.items).toHaveLength(1);
+    expect(post2Result.metadata.total).toBe(1);
   });
 
-  it('should return empty array for location with no items', async () => {
-    const comments = await all<Comment, 'comment', 'post'>(
+  it('should return empty result for location with no items', async () => {
+    const result = await all<Comment, 'comment', 'post'>(
       undefined,
       [{ kt: 'post', lk: 'empty-post' }],
       pathBuilder,
@@ -165,7 +168,8 @@ describe('Contained Items - all operation', () => {
       coordinate
     );
 
-    expect(comments).toEqual([]);
+    expect(result.items).toEqual([]);
+    expect(result.metadata.total).toBe(0);
   });
 
   it('should apply query filters to contained items', async () => {
@@ -189,7 +193,7 @@ describe('Contained Items - all operation', () => {
       options
     );
 
-    const filtered = await all<Comment, 'comment', 'post'>(
+    const filteredResult = await all<Comment, 'comment', 'post'>(
       {
         filter: (item: Comment) => item.text.includes('Include')
       } as any,
@@ -200,8 +204,9 @@ describe('Contained Items - all operation', () => {
       coordinate
     );
 
-    expect(filtered).toHaveLength(1);
-    expect(filtered[0].text).toBe('Include me');
+    expect(filteredResult.items).toHaveLength(1);
+    expect(filteredResult.items[0].text).toBe('Include me');
+    expect(filteredResult.metadata.total).toBe(1);
   });
 });
 

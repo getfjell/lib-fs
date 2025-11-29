@@ -1,4 +1,4 @@
-import { Coordinate, Item, ItemQuery, LocKeyArray } from '@fjell/core';
+import { AllOperationResult, AllOptions, Coordinate, Item, ItemQuery, LocKeyArray } from '@fjell/core';
 import { PathBuilder } from '../PathBuilder';
 import { FileProcessor } from '../FileProcessor';
 import { DirectoryManager } from '../DirectoryManager';
@@ -9,7 +9,7 @@ import * as path from 'path';
 const logger = FSLogger.get('ops', 'all');
 
 /**
- * Get all items from filesystem
+ * Get all items from filesystem with pagination support
  */
 export async function all<
   V extends Item<S, L1, L2, L3, L4, L5>,
@@ -25,9 +25,10 @@ export async function all<
   pathBuilder: PathBuilder,
   fileProcessor: FileProcessor,
   directoryManager: DirectoryManager,
-  coordinate: Coordinate<S, L1, L2, L3, L4, L5>
-): Promise<V[]> {
-  logger.default('all', { query, locations });
+  coordinate: Coordinate<S, L1, L2, L3, L4, L5>,
+  allOptions?: AllOptions
+): Promise<AllOperationResult<V>> {
+  logger.default('all', { query, locations, allOptions });
 
   try {
     // Determine directory path from coordinate and locations
@@ -67,39 +68,71 @@ export async function all<
     const items = allItems.filter((item) => item !== null) as V[];
     logger.default('Deserialized items', { count: items.length });
 
-    // Apply query filters if provided
-    let result = items;
+    // Apply query filters if provided (but NOT pagination yet)
+    let filtered = items;
 
     if (query) {
       // Apply custom filter if provided (via extended query)
       if ((query as any).filter) {
-        result = result.filter((query as any).filter);
+        filtered = filtered.filter((query as any).filter);
       }
 
       // Apply custom sort if provided (via extended query)
       if ((query as any).sort) {
-        result = result.sort((query as any).sort);
-      }
-
-      // Apply offset
-      if (query.offset && query.offset > 0) {
-        result = result.slice(query.offset);
-      }
-
-      // Apply limit
-      if (typeof query.limit !== 'undefined' && query.limit >= 0) {
-        result = result.slice(0, query.limit);
+        filtered = filtered.sort((query as any).sort);
       }
     }
 
-    logger.default('Returning items', { count: result.length });
-    return result;
+    // Get total count BEFORE applying pagination
+    const total = filtered.length;
+
+    // Determine effective limit/offset (options takes precedence over query)
+    const effectiveLimit = allOptions?.limit ?? query?.limit;
+    const effectiveOffset = allOptions?.offset ?? query?.offset ?? 0;
+
+    logger.default('Pagination', { total, effectiveLimit, effectiveOffset });
+
+    // Apply pagination
+    let result = filtered;
+
+    // Apply offset
+    if (effectiveOffset > 0) {
+      result = result.slice(effectiveOffset);
+    }
+
+    // Apply limit
+    if (effectiveLimit != null && effectiveLimit >= 0) {
+      result = result.slice(0, effectiveLimit);
+    }
+
+    logger.default('Returning items', { count: result.length, total });
+
+    // Return AllOperationResult with items and metadata
+    return {
+      items: result,
+      metadata: {
+        total,
+        returned: result.length,
+        limit: effectiveLimit,
+        offset: effectiveOffset,
+        hasMore: effectiveOffset + result.length < total
+      }
+    };
   } catch (error) {
     logger.error('Error getting all items', { error });
-    // If directory doesn't exist, return empty array
+    // If directory doesn't exist, return empty result
     if ((error as any).code === 'ENOENT') {
-      logger.default('Directory does not exist, returning empty array');
-      return [];
+      logger.default('Directory does not exist, returning empty result');
+      return {
+        items: [],
+        metadata: {
+          total: 0,
+          returned: 0,
+          limit: allOptions?.limit ?? query?.limit,
+          offset: allOptions?.offset ?? query?.offset ?? 0,
+          hasMore: false
+        }
+      };
     }
     throw error;
   }

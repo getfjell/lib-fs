@@ -162,7 +162,7 @@ describe('Contained Items - Nested (2+ levels)', () => {
     );
 
     // List replies in this specific comment
-    const replies = await all<Reply, 'reply', 'post', 'comment'>(
+    const repliesResult = await all<Reply, 'reply', 'post', 'comment'>(
       undefined,
       [{ kt: 'post', lk: 'post-1' }, { kt: 'comment', lk: 'comment-1' }],
       pathBuilder,
@@ -171,7 +171,8 @@ describe('Contained Items - Nested (2+ levels)', () => {
       coordinate
     );
 
-    expect(replies).toHaveLength(2);
+    expect(repliesResult.items).toHaveLength(2);
+    expect(repliesResult.metadata.total).toBe(2);
   });
 
   it('should differentiate between different comment locations', async () => {
@@ -197,7 +198,7 @@ describe('Contained Items - Nested (2+ levels)', () => {
     );
 
     // List replies in comment-a
-    const repliesA = await all<Reply, 'reply', 'post', 'comment'>(
+    const repliesAResult = await all<Reply, 'reply', 'post', 'comment'>(
       undefined,
       [{ kt: 'post', lk: 'post-1' }, { kt: 'comment', lk: 'comment-a' }],
       pathBuilder,
@@ -206,11 +207,12 @@ describe('Contained Items - Nested (2+ levels)', () => {
       coordinate
     );
 
-    expect(repliesA).toHaveLength(1);
-    expect(repliesA[0].text).toBe('Comment A Reply');
+    expect(repliesAResult.items).toHaveLength(1);
+    expect(repliesAResult.items[0].text).toBe('Comment A Reply');
+    expect(repliesAResult.metadata.total).toBe(1);
 
     // List replies in comment-b
-    const repliesB = await all<Reply, 'reply', 'post', 'comment'>(
+    const repliesBResult = await all<Reply, 'reply', 'post', 'comment'>(
       undefined,
       [{ kt: 'post', lk: 'post-1' }, { kt: 'comment', lk: 'comment-b' }],
       pathBuilder,
@@ -219,8 +221,9 @@ describe('Contained Items - Nested (2+ levels)', () => {
       coordinate
     );
 
-    expect(repliesB).toHaveLength(1);
-    expect(repliesB[0].text).toBe('Comment B Reply');
+    expect(repliesBResult.items).toHaveLength(1);
+    expect(repliesBResult.items[0].text).toBe('Comment B Reply');
+    expect(repliesBResult.metadata.total).toBe(1);
   });
 });
 
