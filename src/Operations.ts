@@ -151,13 +151,15 @@ export const createOperations = <
     },
 
     // Find operations - execute user-defined finders
-    find: async (finder: string, params: any = {}, locations?: any) => {
+    find: async (finder: string, params: any = {}, locations?: any, findOptions?: any) => {
       if (!options.finders || !options.finders[finder]) {
         throw new Error(`Finder '${finder}' not found`);
       }
       
-      // Execute user's finder function which should do the query
-      return options.finders[finder](params, locations);
+      // Execute user's finder function - pass findOptions for opt-in pagination support
+      // Finder can return FindOperationResult<V> (opt-in) or V[] (legacy)
+      // Type assertion needed because FinderMethod type from @fjell/lib may be stale
+      return (options.finders[finder] as any)(params, locations, findOptions);
     },
 
     findOne: async (finder: string, params: any = {}, locations?: any) => {
@@ -165,8 +167,15 @@ export const createOperations = <
         throw new Error(`Finder '${finder}' not found`);
       }
       
-      const results = await options.finders[finder](params, locations);
-      return results.length > 0 ? results[0] : null;
+      // Call finder with limit: 1 and extract first item
+      // Type assertion needed because FinderMethod type from @fjell/lib may be stale
+      const result = await (options.finders[finder] as any)(params, locations, { limit: 1 });
+      // Handle both FindOperationResult and V[] return types
+      if (result && typeof result === 'object' && 'items' in result && 'metadata' in result) {
+        return result.items.length > 0 ? result.items[0] : null;
+      }
+      const results = result as V[];
+      return results && results.length > 0 ? results[0] : null;
     }
   };
 
