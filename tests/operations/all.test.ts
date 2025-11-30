@@ -83,7 +83,7 @@ describe('all operation', () => {
       options
     );
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       undefined,
       undefined,
       pathBuilder,
@@ -92,12 +92,13 @@ describe('all operation', () => {
       coordinate
     );
 
-    expect(items).toHaveLength(3);
-    expect(items.map(i => i.pk).sort()).toEqual(['item-1', 'item-2', 'item-3']);
+    expect(result.items).toHaveLength(3);
+    expect(result.items.map(i => i.pk).sort()).toEqual(['item-1', 'item-2', 'item-3']);
+    expect(result.metadata.total).toBe(3);
   });
 
   it('should return empty array for empty directory', async () => {
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       undefined,
       undefined,
       pathBuilder,
@@ -106,7 +107,8 @@ describe('all operation', () => {
       coordinate
     );
 
-    expect(items).toEqual([]);
+    expect(result.items).toEqual([]);
+    expect(result.metadata.total).toBe(0);
   });
 
   it('should apply filter from query', async () => {
@@ -130,7 +132,7 @@ describe('all operation', () => {
       options
     );
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       {
         filter: (item) => item.name === 'Alpha'
       },
@@ -141,8 +143,9 @@ describe('all operation', () => {
       coordinate
     );
 
-    expect(items).toHaveLength(1);
-    expect(items[0].name).toBe('Alpha');
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].name).toBe('Alpha');
+    expect(result.metadata.total).toBe(1);
   });
 
   it('should apply sort from query', async () => {
@@ -176,7 +179,7 @@ describe('all operation', () => {
       options
     );
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       {
         sort: (a, b) => (a.priority || 0) - (b.priority || 0)
       },
@@ -187,9 +190,10 @@ describe('all operation', () => {
       coordinate
     );
 
-    expect(items[0].name).toBe('Alpha');
-    expect(items[1].name).toBe('Beta');
-    expect(items[2].name).toBe('Charlie');
+    expect(result.items[0].name).toBe('Alpha');
+    expect(result.items[1].name).toBe('Beta');
+    expect(result.items[2].name).toBe('Charlie');
+    expect(result.metadata.total).toBe(3);
   });
 
   it('should apply limit from query', async () => {
@@ -197,7 +201,7 @@ describe('all operation', () => {
     await create<TestItem, 'test'>({ pk: 'item-2', name: 'Item 2' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
     await create<TestItem, 'test'>({ pk: 'item-3', name: 'Item 3' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       { limit: 2 },
       undefined,
       pathBuilder,
@@ -206,7 +210,8 @@ describe('all operation', () => {
       coordinate
     );
 
-    expect(items).toHaveLength(2);
+    expect(result.items).toHaveLength(2);
+    expect(result.metadata.total).toBe(3);
   });
 
   it('should apply offset from query', async () => {
@@ -214,7 +219,7 @@ describe('all operation', () => {
     await create<TestItem, 'test'>({ pk: 'item-2', name: 'Item 2' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
     await create<TestItem, 'test'>({ pk: 'item-3', name: 'Item 3' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       { offset: 1 },
       undefined,
       pathBuilder,
@@ -223,7 +228,8 @@ describe('all operation', () => {
       coordinate
     );
 
-    expect(items).toHaveLength(2);
+    expect(result.items).toHaveLength(2);
+    expect(result.metadata.total).toBe(3);
   });
 
   it('should apply offset and limit together', async () => {
@@ -232,7 +238,7 @@ describe('all operation', () => {
     await create<TestItem, 'test'>({ pk: 'item-3', name: 'Item 3', priority: 3 }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
     await create<TestItem, 'test'>({ pk: 'item-4', name: 'Item 4', priority: 4 }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       {
         offset: 1,
         limit: 2,
@@ -245,9 +251,141 @@ describe('all operation', () => {
       coordinate
     );
 
-    expect(items).toHaveLength(2);
-    expect(items[0].priority).toBe(2);
-    expect(items[1].priority).toBe(3);
+    expect(result.items).toHaveLength(2);
+    expect(result.items[0].priority).toBe(2);
+    expect(result.metadata.total).toBe(4);
+    expect(result.items[1].priority).toBe(3);
+  });
+
+  it('should use allOptions limit/offset instead of query limit/offset', async () => {
+    await create<TestItem, 'test'>({ pk: 'item-1', name: 'Item 1' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+    await create<TestItem, 'test'>({ pk: 'item-2', name: 'Item 2' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+    await create<TestItem, 'test'>({ pk: 'item-3', name: 'Item 3' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+
+    const result = await all<TestItem, 'test'>(
+      { limit: 1, offset: 0 }, // Query params
+      undefined,
+      pathBuilder,
+      fileProcessor,
+      directoryManager,
+      coordinate,
+      { limit: 2, offset: 1 } // Options should override
+    );
+
+    expect(result.items).toHaveLength(2);
+    expect(result.items[0].pk).toBe('item-2');
+    expect(result.metadata.limit).toBe(2);
+    expect(result.metadata.offset).toBe(1);
+    expect(result.metadata.total).toBe(3);
+  });
+
+  it('should calculate hasMore correctly', async () => {
+    await create<TestItem, 'test'>({ pk: 'item-1', name: 'Item 1' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+    await create<TestItem, 'test'>({ pk: 'item-2', name: 'Item 2' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+    await create<TestItem, 'test'>({ pk: 'item-3', name: 'Item 3' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+
+    const result = await all<TestItem, 'test'>(
+      undefined,
+      undefined,
+      pathBuilder,
+      fileProcessor,
+      directoryManager,
+      coordinate,
+      { limit: 2, offset: 0 }
+    );
+
+    expect(result.metadata.hasMore).toBe(true);
+    expect(result.items).toHaveLength(2);
+  });
+
+  it('should set hasMore to false when all items returned', async () => {
+    await create<TestItem, 'test'>({ pk: 'item-1', name: 'Item 1' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+    await create<TestItem, 'test'>({ pk: 'item-2', name: 'Item 2' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+
+    const result = await all<TestItem, 'test'>(
+      undefined,
+      undefined,
+      pathBuilder,
+      fileProcessor,
+      directoryManager,
+      coordinate,
+      { limit: 2, offset: 0 }
+    );
+
+    expect(result.metadata.hasMore).toBe(false);
+    expect(result.items).toHaveLength(2);
+  });
+
+  it('should handle offset of 0 (no offset applied)', async () => {
+    await create<TestItem, 'test'>({ pk: 'item-1', name: 'Item 1' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+    await create<TestItem, 'test'>({ pk: 'item-2', name: 'Item 2' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+
+    const result = await all<TestItem, 'test'>(
+      undefined,
+      undefined,
+      pathBuilder,
+      fileProcessor,
+      directoryManager,
+      coordinate,
+      { limit: 1, offset: 0 }
+    );
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].pk).toBe('item-1');
+  });
+
+  it('should handle limit of null (no limit applied)', async () => {
+    await create<TestItem, 'test'>({ pk: 'item-1', name: 'Item 1' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+    await create<TestItem, 'test'>({ pk: 'item-2', name: 'Item 2' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+
+    const result = await all<TestItem, 'test'>(
+      undefined,
+      undefined,
+      pathBuilder,
+      fileProcessor,
+      directoryManager,
+      coordinate,
+      { limit: undefined, offset: 0 }
+    );
+
+    expect(result.items).toHaveLength(2);
+    expect(result.metadata.limit).toBeUndefined();
+  });
+
+  it('should handle negative limit (limit not applied)', async () => {
+    await create<TestItem, 'test'>({ pk: 'item-1', name: 'Item 1' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+    await create<TestItem, 'test'>({ pk: 'item-2', name: 'Item 2' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+
+    const result = await all<TestItem, 'test'>(
+      undefined,
+      undefined,
+      pathBuilder,
+      fileProcessor,
+      directoryManager,
+      coordinate,
+      { limit: -1, offset: 0 }
+    );
+
+    // Negative limit should not be applied, so all items returned
+    expect(result.items).toHaveLength(2);
+    expect(result.metadata.limit).toBe(-1);
+  });
+
+  it('should handle empty locations array (locations.length === 0)', async () => {
+    await create<TestItem, 'test'>({ pk: 'item-1', name: 'Item 1' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+    await create<TestItem, 'test'>({ pk: 'item-2', name: 'Item 2' }, undefined, pathBuilder, fileProcessor, directoryManager, coordinate, options);
+
+    const result = await all<TestItem, 'test'>(
+      undefined,
+      [], // Empty array - should use primary directory path
+      pathBuilder,
+      fileProcessor,
+      directoryManager,
+      coordinate
+    );
+
+    expect(result.items).toHaveLength(2);
+    expect(result.metadata.total).toBe(2);
   });
 });
 
