@@ -52,7 +52,7 @@ describe('all operation - Advanced Coverage', () => {
     // Create corrupted JSON
     await fs.writeFile(path.join(dirPath, 'corrupt.json'), 'not valid json{');
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       undefined,
       undefined,
       pathBuilder,
@@ -62,8 +62,9 @@ describe('all operation - Advanced Coverage', () => {
     );
 
     // Should only return valid item, skip corrupted
-    expect(items).toHaveLength(1);
-    expect(items[0].name).toBe('Valid');
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].name).toBe('Valid');
+    expect(result.metadata.total).toBe(1);
   });
 
   it('should handle empty query object', async () => {
@@ -73,7 +74,7 @@ describe('all operation - Advanced Coverage', () => {
       JSON.stringify({ kt: 'test', pk: 'item-1', name: 'Test' })
     );
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       {}, // Empty query
       undefined,
       pathBuilder,
@@ -82,7 +83,8 @@ describe('all operation - Advanced Coverage', () => {
       coordinate
     );
 
-    expect(items).toHaveLength(1);
+    expect(result.items).toHaveLength(1);
+    expect(result.metadata.total).toBe(1);
   });
 
   it('should apply offset of 0 (should not skip anything)', async () => {
@@ -90,7 +92,7 @@ describe('all operation - Advanced Coverage', () => {
     await fs.writeFile(path.join(testDir, 'tests', 'item1.json'), JSON.stringify({ kt: 'test', pk: 'item-1', name: 'Item 1' }));
     await fs.writeFile(path.join(testDir, 'tests', 'item2.json'), JSON.stringify({ kt: 'test', pk: 'item-2', name: 'Item 2' }));
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       { offset: 0 },
       undefined,
       pathBuilder,
@@ -99,14 +101,15 @@ describe('all operation - Advanced Coverage', () => {
       coordinate
     );
 
-    expect(items).toHaveLength(2);
+    expect(result.items).toHaveLength(2);
+    expect(result.metadata.total).toBe(2);
   });
 
   it('should apply limit of 0 (should return empty)', async () => {
     await fs.mkdir(path.join(testDir, 'tests'), { recursive: true });
     await fs.writeFile(path.join(testDir, 'tests', 'item1.json'), JSON.stringify({ kt: 'test', pk: 'item-1', name: 'Item 1' }));
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       { limit: 0 },
       undefined,
       pathBuilder,
@@ -115,7 +118,8 @@ describe('all operation - Advanced Coverage', () => {
       coordinate
     );
 
-    expect(items).toEqual([]);
+    expect(result.items).toEqual([]);
+    expect(result.metadata.total).toBe(1);
   });
 
   it('should handle query with only offset (no limit)', async () => {
@@ -124,7 +128,7 @@ describe('all operation - Advanced Coverage', () => {
     await fs.writeFile(path.join(testDir, 'tests', 'item2.json'), JSON.stringify({ kt: 'test', pk: 'item-2', name: 'Item 2', value: 2 }));
     await fs.writeFile(path.join(testDir, 'tests', 'item3.json'), JSON.stringify({ kt: 'test', pk: 'item-3', name: 'Item 3', value: 3 }));
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       { offset: 1 },
       undefined,
       pathBuilder,
@@ -133,7 +137,8 @@ describe('all operation - Advanced Coverage', () => {
       coordinate
     );
 
-    expect(items).toHaveLength(2);
+    expect(result.items).toHaveLength(2);
+    expect(result.metadata.total).toBe(3);
   });
 
   it('should handle query with only limit (no offset)', async () => {
@@ -142,7 +147,7 @@ describe('all operation - Advanced Coverage', () => {
     await fs.writeFile(path.join(testDir, 'tests', 'item2.json'), JSON.stringify({ kt: 'test', pk: 'item-2', name: 'Item 2' }));
     await fs.writeFile(path.join(testDir, 'tests', 'item3.json'), JSON.stringify({ kt: 'test', pk: 'item-3', name: 'Item 3' }));
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       { limit: 2 },
       undefined,
       pathBuilder,
@@ -151,7 +156,8 @@ describe('all operation - Advanced Coverage', () => {
       coordinate
     );
 
-    expect(items).toHaveLength(2);
+    expect(result.items).toHaveLength(2);
+    expect(result.metadata.total).toBe(3);
   });
 
   it('should handle query with custom filter and sort together', async () => {
@@ -160,7 +166,7 @@ describe('all operation - Advanced Coverage', () => {
     await fs.writeFile(path.join(testDir, 'tests', 'item2.json'), JSON.stringify({ kt: 'test', pk: 'item-2', name: 'Beta', value: 1 }));
     await fs.writeFile(path.join(testDir, 'tests', 'item3.json'), JSON.stringify({ kt: 'test', pk: 'item-3', name: 'Gamma', value: 2 }));
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       {
         filter: (item: TestItem) => (item.value || 0) > 1,
         sort: (a: TestItem, b: TestItem) => (a.value || 0) - (b.value || 0)
@@ -172,14 +178,15 @@ describe('all operation - Advanced Coverage', () => {
       coordinate
     );
 
-    expect(items).toHaveLength(2); // Only value > 1
-    expect(items[0].value).toBe(2); // Gamma
-    expect(items[1].value).toBe(3); // Alpha
+    expect(result.items).toHaveLength(2); // Only value > 1
+    expect(result.items[0].value).toBe(2); // Gamma
+    expect(result.items[1].value).toBe(3); // Alpha
+    expect(result.metadata.total).toBe(2);
   });
 
   it('should handle non-existent directory (ENOENT)', async () => {
     // Don't create the directory
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       undefined,
       undefined,
       pathBuilder,
@@ -188,7 +195,8 @@ describe('all operation - Advanced Coverage', () => {
       coordinate
     );
 
-    expect(items).toEqual([]);
+    expect(result.items).toEqual([]);
+    expect(result.metadata.total).toBe(0);
   });
 
   it('should filter out files without .json extension when filter applied', async () => {
@@ -196,7 +204,7 @@ describe('all operation - Advanced Coverage', () => {
     await fs.writeFile(path.join(testDir, 'tests', 'item.json'), JSON.stringify({ kt: 'test', pk: 'item-1', name: 'JSON' }));
     await fs.writeFile(path.join(testDir, 'tests', 'other.txt'), 'not json');
 
-    const items = await all<TestItem, 'test'>(
+    const result = await all<TestItem, 'test'>(
       undefined,
       undefined,
       pathBuilder,
@@ -205,8 +213,9 @@ describe('all operation - Advanced Coverage', () => {
       coordinate
     );
 
-    expect(items).toHaveLength(1);
-    expect(items[0].name).toBe('JSON');
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].name).toBe('JSON');
+    expect(result.metadata.total).toBe(1);
   });
 });
 

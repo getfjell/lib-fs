@@ -100,9 +100,10 @@ describe('Primary Item Library Integration', () => {
       await userLib.operations.create({ name: 'User 2', email: 'user2@example.com' });
       await userLib.operations.create({ name: 'User 3', email: 'user3@example.com' });
 
-      const all = await userLib.operations.all();
+      const result = await userLib.operations.all();
 
-      expect(all).toHaveLength(3);
+      expect(result.items).toHaveLength(3);
+      expect(result.metadata.total).toBe(3);
     });
 
     it('should use finders', async () => {
@@ -113,8 +114,8 @@ describe('Primary Item Library Integration', () => {
         {
           finders: {
             byStatus: async (params) => {
-              const all = await userLib.operations.all();
-              return all.filter(u => u.status === params.status);
+              const result = await userLib.operations.all();
+              return result.items.filter(u => u.status === params.status);
             }
           }
         }

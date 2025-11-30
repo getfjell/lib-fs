@@ -125,5 +125,29 @@ describe('get operation', () => {
 
     expect(result).toBeNull();
   });
+
+  it('should use default encoding when options.encoding is undefined', async () => {
+    const key: PriKey<'test'> = { kt: 'test', pk: 'test-encoding' };
+    const item: TestItem = { kt: 'test', pk: 'test-encoding', name: 'Test' };
+    
+    const filePath = pathBuilder.buildPath(key);
+    await directoryManager.ensureNestedDirectories(filePath);
+    await fs.writeFile(filePath, JSON.stringify(item), 'utf-8');
+
+    const optionsWithoutEncoding = {
+      globalDirectory: testDir
+    } as Options<TestItem, 'test'>;
+
+    const result = await get<TestItem, 'test'>(
+      key,
+      pathBuilder,
+      fileProcessor,
+      coordinate,
+      optionsWithoutEncoding
+    );
+
+    expect(result).toBeDefined();
+    expect(result?.name).toBe('Test');
+  });
 });
 
