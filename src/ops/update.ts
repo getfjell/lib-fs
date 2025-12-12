@@ -67,7 +67,14 @@ export async function update<
     );
 
     if (!existing) {
-      throw new Error(`Item not found: ${key.kt}/${key.pk}`);
+      logger.error('Item not found for update', {
+        component: 'lib-fs',
+        operation: 'update',
+        key: JSON.stringify(key),
+        suggestion: 'Verify the item exists before updating. Use get() to check, or use upsert() to create if missing.',
+        coordinate: JSON.stringify(coordinate)
+      });
+      throw new Error(`Item not found for update: ${key.kt}/${key.pk}`);
     }
 
     // Map core UpdateOptions to internal mergeStrategy

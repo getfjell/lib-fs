@@ -208,7 +208,7 @@ describe('Operations', () => {
 
     await expect(
       operations.find('nonexistent', {})
-    ).rejects.toThrow('Finder "nonexistent" not found');
+    ).rejects.toThrow(/Finder ['"]nonexistent['"] not found/);
   });
 
   it('should execute findOne when defined', async () => {
@@ -247,7 +247,7 @@ describe('Operations', () => {
 
     await expect(
       operations.findOne('nonexistent', {})
-    ).rejects.toThrow('Finder "nonexistent" not found');
+    ).rejects.toThrow(/Finder ['"]nonexistent['"] not found/);
   });
 });
 
