@@ -153,7 +153,23 @@ export const createOperations = <
     // Find operations - execute user-defined finders
     find: async (finder: string, params: any = {}, locations?: any, findOptions?: any) => {
       if (!options.finders || !options.finders[finder]) {
-        throw new Error(`Finder '${finder}' not found`);
+        const availableFinders = options.finders ? Object.keys(options.finders) : [];
+        logger.error('Finder not found', {
+          component: 'lib-fs',
+          operation: 'find',
+          requestedFinder: finder,
+          availableFinders,
+          suggestion: availableFinders.length > 0
+            ? `Use one of: ${availableFinders.join(', ')}`
+            : 'Define finders in your library options',
+          coordinate: JSON.stringify(definition.coordinate)
+        });
+        throw new Error(
+          `Finder '${finder}' not found. ` +
+          (availableFinders.length > 0
+            ? `Available finders: ${availableFinders.join(', ')}`
+            : 'No finders defined.')
+        );
       }
       
       // Execute user's finder function - pass findOptions for opt-in pagination support
@@ -164,7 +180,23 @@ export const createOperations = <
 
     findOne: async (finder: string, params: any = {}, locations?: any) => {
       if (!options.finders || !options.finders[finder]) {
-        throw new Error(`Finder '${finder}' not found`);
+        const availableFinders = options.finders ? Object.keys(options.finders) : [];
+        logger.error('Finder not found', {
+          component: 'lib-fs',
+          operation: 'findOne',
+          requestedFinder: finder,
+          availableFinders,
+          suggestion: availableFinders.length > 0
+            ? `Use one of: ${availableFinders.join(', ')}`
+            : 'Define finders in your library options',
+          coordinate: JSON.stringify(definition.coordinate)
+        });
+        throw new Error(
+          `Finder '${finder}' not found. ` +
+          (availableFinders.length > 0
+            ? `Available finders: ${availableFinders.join(', ')}`
+            : 'No finders defined.')
+        );
       }
       
       // Call finder with limit: 1 and extract first item
