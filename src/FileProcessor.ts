@@ -19,9 +19,21 @@ export class FileProcessor {
         return JSON.stringify(item, null, 2);
       }
       return JSON.stringify(item);
-    } catch (error) {
-      logger.error('Failed to serialize item', { item, error });
-      throw new Error(`Failed to serialize item: ${error}`);
+    } catch (error: any) {
+      logger.error('Failed to serialize item for filesystem storage', {
+        component: 'lib-fs',
+        subcomponent: 'FileProcessor',
+        operation: 'serialize',
+        item: item ? `${item.kt}/${item.pk}` : 'undefined',
+        errorType: error?.constructor?.name,
+        errorMessage: error?.message,
+        suggestion: 'Check for circular references, non-serializable values (functions, symbols), or BigInt values in item data'
+      });
+      throw new Error(
+        `Failed to serialize item for filesystem storage: ${error?.message || error}. ` +
+        `Item: ${item ? `${item.kt}/${item.pk}` : 'undefined'}. ` +
+        `Suggestion: Remove non-serializable values from item data.`
+      );
     }
   }
 
