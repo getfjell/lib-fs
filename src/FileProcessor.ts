@@ -1,4 +1,4 @@
-import { Coordinate, Item } from '@fjell/core';
+import { Coordinate, Item } from '@fjell/types';
 import FSLogger from './logger';
 
 const logger = FSLogger.get('FileProcessor');

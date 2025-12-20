@@ -1,5 +1,5 @@
 import * as fs from 'fs/promises';
-import { ComKey, Coordinate, Item, PriKey } from '@fjell/core';
+import { ComKey, Coordinate, Item, PriKey } from '@fjell/types';
 import { PathBuilder } from '../PathBuilder';
 import { FileProcessor } from '../FileProcessor';
 import { Options } from '../Options';
