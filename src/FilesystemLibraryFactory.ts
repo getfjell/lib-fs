@@ -1,4 +1,4 @@
-import { Item, ItemTypeArray } from '@fjell/core';
+import { Item, ItemTypeArray } from '@fjell/types';
 import { Registry } from '@fjell/lib';
 import * as Library from '@fjell/lib';
 import { createFilesystemLibrary, FilesystemLibrary } from './FilesystemLibrary';

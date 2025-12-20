@@ -5,8 +5,8 @@ export * from './Options';
 export * from './types/Files';
 export type { Definition } from './Definition';
 
-// Re-export commonly used types from @fjell/core for convenience
-export type { PriKey, ComKey, Item } from '@fjell/core';
+// Re-export commonly used types from @fjell/types for convenience
+export type { PriKey, ComKey, Item } from '@fjell/types';
 
 // Export specialized helpers
 export { createPrimaryFilesystemLibrary } from './primary/FilesystemLibrary';

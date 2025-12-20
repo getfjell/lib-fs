@@ -1,4 +1,5 @@
-import { ComKey, isComKey, PriKey } from '@fjell/core';
+import { ComKey, PriKey } from '@fjell/types';
+import { isComKey } from '@fjell/core';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import FSLogger from './logger';
