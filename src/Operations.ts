@@ -1,4 +1,4 @@
-import { AllOptions, ComKey, Item, ItemQuery, LocKeyArray, PriKey } from '@fjell/core';
+import { AllOptions, ComKey, Item, ItemQuery, LocKeyArray, PriKey } from '@fjell/types';
 import * as Library from '@fjell/lib';
 import { Definition } from './Definition';
 import { PathBuilder } from './PathBuilder';

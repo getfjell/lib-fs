@@ -1,4 +1,4 @@
-import { Item } from '@fjell/core';
+import { Item } from '@fjell/types';
 import * as Library from '@fjell/lib';
 import { createFilesystemLibrary, FilesystemLibrary } from '../FilesystemLibrary';
 import FSLogger from '../logger';

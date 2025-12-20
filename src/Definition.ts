@@ -1,4 +1,5 @@
-import { Coordinate, createCoordinate, Item, ItemTypeArray } from '@fjell/core';
+import { Coordinate, Item, ItemTypeArray } from '@fjell/types';
+import { createCoordinate } from '@fjell/core';
 import * as Library from '@fjell/lib';
 import * as path from 'path';
 import { Options } from './Options';

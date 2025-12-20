@@ -1,4 +1,4 @@
-import { AllOperationResult, AllOptions, Coordinate, Item, ItemQuery, LocKeyArray } from '@fjell/core';
+import { AllOperationResult, AllOptions, Coordinate, Item, ItemQuery, LocKeyArray } from '@fjell/types';
 import { PathBuilder } from '../PathBuilder';
 import { FileProcessor } from '../FileProcessor';
 import { DirectoryManager } from '../DirectoryManager';

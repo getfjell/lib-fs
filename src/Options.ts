@@ -1,5 +1,5 @@
 import * as Library from '@fjell/lib';
-import { Item } from '@fjell/core';
+import { Item } from '@fjell/types';
 
 export interface Options<
   V extends Item<S, L1, L2, L3, L4, L5>,

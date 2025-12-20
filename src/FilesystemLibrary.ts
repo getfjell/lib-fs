@@ -1,5 +1,5 @@
 import * as Library from '@fjell/lib';
-import { Coordinate, Item, ItemTypeArray } from '@fjell/core';
+import { Coordinate, Item, ItemTypeArray } from '@fjell/types';
 import { Registry } from '@fjell/lib';
 import { Options } from './Options';
 import { createDefinition } from './Definition';
