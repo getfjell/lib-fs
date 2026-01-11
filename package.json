@@ -61,12 +61,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/getfjell/lib-fs.git"
+    "url": "git+https://github.com/fjellgrunn/lib-fs.git"
   },
   "bugs": {
-    "url": "https://github.com/getfjell/lib-fs/issues"
+    "url": "https://github.com/fjellgrunn/lib-fs/issues"
   },
-  "homepage": "https://github.com/getfjell/lib-fs#readme",
+  "homepage": "https://github.com/fjellgrunn/lib-fs#readme",
   "author": "Fjell Team",
   "files": [
     "dist",
